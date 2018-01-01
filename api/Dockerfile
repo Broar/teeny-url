@@ -1,6 +1,6 @@
 FROM golang:alpine
 
-RUN apk add --no-cache git
+RUN apk add --no-cache build-base git
 
 WORKDIR /go/src/teeny-url
 COPY . .
