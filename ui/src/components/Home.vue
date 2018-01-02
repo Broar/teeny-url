@@ -11,7 +11,7 @@
       </p>
     </div>
     <div v-if="shortUrl !== null" class="container">
-      <p>Your shortened URL is {{shortUrl}}</p>
+      <p>Your shortened URL is <a v-bind:href="shortUrl">{{shortUrl}}</a></p>
     </div>
   </div>
 </template>
@@ -19,13 +19,14 @@
 <script>
 module.exports = {
   name: 'Home',
-  data: {
-    url: null,
-    shortUrl: null
+  data: function () {
+    return {
+      url: null,
+      shortUrl: null
+    }
   },
   methods: {
     createShortUrl: function () {
-      console.log(this.url)
       this.shortUrl = this.url
     }
   }
