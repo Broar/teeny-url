@@ -1,0 +1,17 @@
+version: '3'
+services:
+  api:
+    build: ./api
+    ports: 
+      - "8080:8080"
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=
+  ui:
+    build: ./ui
+    environment:
+      env: dev
+    ports:
+      - "8081:8081"
