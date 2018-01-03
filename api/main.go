@@ -23,32 +23,22 @@ type CreateShortURLRequest struct {
 	URL string
 }
 
-func main() {
-	var err error
-	db, err = gorm.Open("sqlite3", "test.db")
-	if err != nil {
-		panic("Failed to connect database")
-	}
+type URLResource struct{}
 
-	defer db.Close()
-
-	db.AutoMigrate(&ShortURL{})
-
-	ws := new(restful.WebService)
-	ws.Path("/url").
+func (resource *URLResource) RegisterTo(container *restful.Container) {
+	service := new(restful.WebService)
+	service.Path("/url").
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_XML, restful.MIME_JSON)
 
-	ws.Route(ws.GET("/{key}").To(getShortURL))
-	ws.Route(ws.PUT("").To(createShortURL))
-	ws.Route(ws.POST("").To(createShortURL))
+	service.Route(service.GET("/{key}").To(resource.getShortURL))
+	service.Route(service.PUT("").To(resource.createShortURL))
+	service.Route(service.POST("").To(resource.createShortURL))
 
-	restful.Add(ws)
-
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	container.Add(service)
 }
 
-func createShortURL(request *restful.Request, response *restful.Response) {
+func (resource *URLResource) createShortURL(request *restful.Request, response *restful.Response) {
 	url := new(CreateShortURLRequest)
 	err := request.ReadEntity(&url)
 
@@ -64,7 +54,7 @@ func createShortURL(request *restful.Request, response *restful.Response) {
 	}
 }
 
-func getShortURL(request *restful.Request, response *restful.Response) {
+func (resource *URLResource) getShortURL(request *restful.Request, response *restful.Response) {
 	key := request.PathParameter("key")
 
 	var url ShortURL
@@ -75,4 +65,32 @@ func getShortURL(request *restful.Request, response *restful.Response) {
 	} else {
 		response.WriteError(http.StatusNotFound, err)
 	}
+}
+
+func main() {
+	var err error
+	db, err = gorm.Open("sqlite3", "test.db")
+	if err != nil {
+		panic("Failed to connect database")
+	}
+
+	defer db.Close()
+
+	db.AutoMigrate(&ShortURL{})
+
+	container := restful.NewContainer()
+	resource := URLResource{}
+	resource.RegisterTo(container)
+
+	cors := restful.CrossOriginResourceSharing{
+		ExposeHeaders:  []string{"X-My-Header"},
+		AllowedHeaders: []string{"Content-Type", "Accept"},
+		AllowedMethods: []string{"GET", "POST"},
+		CookiesAllowed: false,
+		Container:      container}
+
+	container.Filter(cors.Filter)
+	container.Filter(container.OPTIONSFilter)
+
+	log.Fatal(http.ListenAndServe(":8080", container))
 }
