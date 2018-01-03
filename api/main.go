@@ -45,7 +45,7 @@ func (resource *URLResource) createShortURL(request *restful.Request, response *
 	if err == nil {
 		hash := sha256.New()
 		hash.Write([]byte(url.URL))
-		key := base64.URLEncoding.EncodeToString(hash.Sum(nil))
+		key := base64.URLEncoding.EncodeToString(hash.Sum(nil))[:12]
 		short := ShortURL{Key: key, Value: url.URL}
 		db.Create(&short)
 		response.WriteEntity(short)
