@@ -27,7 +27,12 @@ module.exports = {
   },
   methods: {
     createShortUrl: function () {
-      this.shortUrl = this.url
+      this.$http.post('url/', {url: this.url}).then(response => {
+        console.log(response)
+        this.shortUrl = 'http://teeny-url/' + response.body.key
+      }, response => {
+        console.error(response)
+      })
     }
   }
 }
