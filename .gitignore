@@ -159,5 +159,6 @@ $RECYCLE.BIN/
 *.lnk
 
 *.db
+.env
 
 # End of https://www.gitignore.io/api/go,osx,linux,macos,windows,intellij+all,visualstudiocode
