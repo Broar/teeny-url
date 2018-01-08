@@ -3,15 +3,25 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gopkg.in/yaml.v2"
 )
 
-var db *gorm.DB
+type Config struct {
+	DB struct {
+		Name string
+		Host string
+		SSL  string
+	}
+}
 
 type ShortURL struct {
 	gorm.Model
@@ -67,11 +77,36 @@ func (resource *URLResource) getShortURL(request *restful.Request, response *res
 	}
 }
 
+var environment string
+var username string
+var password string
+var config Config
+var db *gorm.DB
+
+func init() {
+	flag.StringVar(&environment, "environment", "dev", "")
+	flag.StringVar(&username, "username", "", "PostgreSQL username")
+	flag.StringVar(&password, "password", "", "PostgreSQL password")
+}
+
 func main() {
-	var err error
-	db, err = gorm.Open("sqlite3", "test.db")
+	flag.Parse()
+
+	file, err := ioutil.ReadFile(fmt.Sprintf("config/%s.yml", environment))
 	if err != nil {
-		panic("Failed to connect database")
+		panic(fmt.Sprintf("Failed to read YAML file: %v", err))
+	}
+
+	config := Config{}
+	err = yaml.Unmarshal([]byte(file), &config)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to parse YAML file: %v", err))
+	}
+
+	fmt.Printf("host=%s user=%s dbname=%s sslmode=%s password=%s\n", config.DB.Host, username, config.DB.Name, config.DB.SSL, password)
+	db, err = gorm.Open("postgres", fmt.Sprintf("host=%s user=%s dbname=%s sslmode=%s password=%s", config.DB.Host, username, config.DB.Name, config.DB.SSL, password))
+	if err != nil {
+		panic("Failed to connect to database")
 	}
 
 	defer db.Close()
