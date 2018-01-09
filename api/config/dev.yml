@@ -1,4 +1,4 @@
 db:
   name: postgres
-  host: localhost
+  host: db
   ssl: disable 
