@@ -29,7 +29,7 @@ module.exports = {
     createShortUrl: function () {
       this.$http.post('url/', {url: this.url}).then(response => {
         console.log(response)
-        this.shortUrl = 'http://teeny-url.com/' + response.body.Key
+        this.shortUrl = process.env.REDIRECT_URL + response.body.Key
       }, response => {
         console.error(response)
       })
