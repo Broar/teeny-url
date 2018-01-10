@@ -1,0 +1,3 @@
+<template>
+  <p>Sorry, we couldn't find what you were looking for</p>
+</template>
